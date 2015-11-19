@@ -7,7 +7,7 @@ When I tried to translate a game , I found that Chinese strings are always longe
 So , this script is useful for those games which has a smaller section in original ELF file.
 
 p.s.
-How to math the offset for strings in ELF:
+How to math the offset of strings in ELF:
 
 1. Export .asm file using IDA Pro
 2. Search strings in IDA (shift + f12)
