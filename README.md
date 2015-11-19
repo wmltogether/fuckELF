@@ -13,7 +13,7 @@ How to math the offset of strings in ELF:
 2. Search strings in IDA (shift + f12)
 3. you can find "off_2CB574	DCD unk_40B97C - 0x2CADE0 ; DATA XREF: .text:002CADC8r" in asm file
 4. if string is unk_40B97C : 
-      [uint32 in off_2CB574] + 0x2CADE0 = 0x40B97C
+      [long in off_2CB574] + 0x2CADE0 = 0x40B97C
 
 
 
