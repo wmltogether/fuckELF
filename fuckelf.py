@@ -68,7 +68,7 @@ class ReadELF:
                 self.e_firstPT_LOAD_OFFSET = fp.tell() - 0x20
             if pHeader.p_type == 1 and pHeader.p_flags == 6:
                 # get full memory length of ELF
-                self.e_fullMemorySize = ((pHeader.p_vaddr + pHeader.p_memsz)%pHeader.p_align | 1) * pHeader.p_align
+                self.e_fullMemorySize = (((pHeader.p_vaddr + pHeader.p_memsz)/pHeader.p_align) | 1) * pHeader.p_align
         fp.seek(self.e_shoff + self.e_shstrndx * self.e_shentsize)
         self.e_shstrIndexOffset = self.e_shoff + self.e_shstrndx * self.e_shentsize
         shHeader = SectionHeader()
@@ -128,7 +128,7 @@ class ReadELF:
                 self.e_firstPT_LOAD_OFFSET = fp.tell() - 0x20
             if pHeader.p_type == 1 and pHeader.p_flags == 6:
                 # get full memory length of ELF
-                self.e_fullMemorySize = ((pHeader.p_vaddr + pHeader.p_memsz)%pHeader.p_align | 1) * pHeader.p_align
+                self.e_fullMemorySize = (((pHeader.p_vaddr + pHeader.p_memsz)%pHeader.p_align) | 1) * pHeader.p_align
             print("%08x\t%08x\t%08x\t%08x\t%08x\t%08x\t%08x\t%08x"%(pHeader.p_type , pHeader.p_offset , pHeader.p_vaddr , pHeader.p_paddr , \
                                                                     pHeader.p_filesz , pHeader.p_memsz ,pHeader.p_flags, pHeader.p_align))
         fp.seek(self.e_shoff + self.e_shstrndx * self.e_shentsize)
@@ -175,13 +175,14 @@ class ReadELF:
 
 class FuckELF:
     def __init__(self):
+    	# New Section Settings 
         self.new_section_name = ".chstext"
         self.new_section_name_pos = 0
         self.new_type = 1
         self.new_flags = 2
         self.new_sh_addr = 0
         self.new_sh_offset = None
-        self.new_sh_size = 0x100000
+        self.new_sh_size = 0x42e8 #Set Section Name
         self.new_sh_link = 0
         self.new_sh_info = 0
         self.new_sh_addralign = 4
@@ -239,12 +240,14 @@ class FuckELF:
         elfBuffer.write(struct.pack("H" , count + 1))#SET e_shnum + 1
 
     def patchProgramHeaderInfo(self , elfBuffer):
+    	flags = 7 #RWE
         elfBuffer.seek(0,2)
         buffer_end = elfBuffer.tell()
         elfBuffer.seek(self.e_firstPT_LOAD_OFFSET + 0x10)
         print("Patch :%08x  >>> ELF SIZE :%08x"%(self.e_firstPT_LOAD_OFFSET + 0x10 , buffer_end))
         elfBuffer.write(struct.pack("I" , buffer_end))
         elfBuffer.write(struct.pack("I" , buffer_end))
+        elfBuffer.write(struct.pack("I" , flags)) #force set p_flags = RWE
 
     def fuckELFfile(self ,elfname):
         readElf = ReadELF()
@@ -269,11 +272,14 @@ class FuckELF:
         dest.write(new_elf_data)
         dest.close()
 
+
 def main():
     readElf = ReadELF()
     readElf.GetElfInfo("libApplicationMain.so")
     fuckELF = FuckELF()
     fuckELF.fuckELFfile("libApplicationMain.so")
+
+
 
 if __name__ == '__main__':
     main()
